@@ -35,7 +35,12 @@ echo 'Filtering out regional data...'
 REGIONAL_PBF_FILE=${REGION}-${GFB_DATE}.osm.pbf
 "${OSMOSIS}" --read-pbf file="${DATA_DIR}/${GFB_PBF_FILE}" --bounding-polygon file="${POLY_DIR}/${REGION}.poly" --write-pbf "${DATA_DIR}/${REGIONAL_PBF_FILE}"
 
-cd "${OSA_CREATOR_BIN_DIR}"
+cd "${OSMAND_CREATOR_DIR}"
 echo 'Converting to OsmAnd format...'
-cp "${DATA_DIR}/${REGIONAL_PBF_FILE}" "${OSA_CREATOR_PBF_DIR}"
+OSMAND_CREATOR_INPUT_DIR=$( sed -En 's/.*directory_for_osm_files="([^"]*)".*/\1/p' batch.xml )
+if [[ ! -d "${OSMAND_CREATOR_INPUT_DIR}" ]] ; then
+    echo "The path \"${OSMAND_CREATOR_INPUT_DIR}\" (directory_for_osm_files parameter in batch.xml) isn't a directory"
+    exit 1
+fi
+cp "${DATA_DIR}/${REGIONAL_PBF_FILE}" "${OSMAND_CREATOR_INPUT_DIR}"
 java -Djava.util.logging.config.file=logging.properties -Xms256M -Xmx2560M -cp "./OsmAndMapCreator.jar:./lib/OsmAnd-core.jar:./lib/*.jar" net.osmand.data.index.IndexBatchCreator ./batch.xml
