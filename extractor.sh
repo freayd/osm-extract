@@ -9,7 +9,7 @@ POLY_DIR="${SCRIPT_DIR}/polygons"
 echo 'Searching for the latest OSM file...'
 GFB_DIRECTORY=https://download.geofabrik.de/${GFB_CONTINENT}/
 GFB_DATE=$( wget -q -O - "${GFB_DIRECTORY}" | sed -En 's/.*china-([0-9]{6})\.osm\.pbf.*/\1/p' | sort -r | head -1 )
-if ! [[ "$GFB_DATE" =~ ^[0-9]{6}$ ]] ; then
+if [[ ! "$GFB_DATE" =~ ^[0-9]{6}$ ]] ; then
     echo "Invalid date \"${GFB_DATE}\" extracted from ${GFB_DIRECTORY}"
     exit 1
 fi
