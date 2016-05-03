@@ -33,7 +33,7 @@ wget -qc --show-progress "https://raw.githubusercontent.com/osmandapp/OsmAnd-mis
 cd "${SCRIPT_DIR}"
 echo 'Filtering out regional data...'
 REGIONAL_PBF_FILE=${REGION}-${GFB_DATE}.osm.pbf
-"${OSMOSIS}" --read-pbf file="${DATA_DIR}/${GFB_PBF_FILE}" --bounding-polygon file="${POLY_DIR}/${REGION}.poly" --write-pbf "${DATA_DIR}/${REGIONAL_PBF_FILE}"
+[[ -f "${DATA_DIR}/${REGIONAL_PBF_FILE}" ]] || "${OSMOSIS}" --read-pbf file="${DATA_DIR}/${GFB_PBF_FILE}" --bounding-polygon file="${POLY_DIR}/${REGION}.poly" --write-pbf "${DATA_DIR}/${REGIONAL_PBF_FILE}"
 
 cd "${OSMAND_CREATOR_DIR}"
 echo 'Converting to OsmAnd format...'
