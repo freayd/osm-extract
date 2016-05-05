@@ -5,10 +5,16 @@ source "${SCRIPT_DIR}/config.sh"
 DATA_DIR="${SCRIPT_DIR}/data"
 POLY_DIR="${SCRIPT_DIR}/polygons"
 
-# TODO Do not fetch the date if a pbf file already exist for the date of today
 echo 'Searching for the latest OSM file...'
 GFB_DIRECTORY=https://download.geofabrik.de/${GFB_CONTINENT}/
-GFB_DATE=$( wget -q -O - "${GFB_DIRECTORY}" | sed -En 's/.*china-([0-9]{6})\.osm\.pbf.*/\1/p' | sort -r | head -1 )
+GFB_HOUR=$( TZ=CET date '+%H' )
+GFB_DATE=$( TZ=CET date '+%y%m%d' )
+if (( $GFB_HOUR < 21 )) ; then # Before 21:00, files are still from yesterday, see https://download.geofabrik.de/technical.html
+    GFB_DATE=$(( $GFB_DATE - 1 ))
+fi
+if [[ ! -f "${DATA_DIR}/${GFB_REGION}-${GFB_DATE}.osm.pbf" ]] ; then
+    GFB_DATE=$( wget -q -O - "${GFB_DIRECTORY}" | sed -En 's/.*china-([0-9]{6})\.osm\.pbf.*/\1/p' | sort -r | head -1 )
+fi
 if [[ ! "$GFB_DATE" =~ ^[0-9]{6}$ ]] ; then
     echo "Invalid date \"${GFB_DATE}\" extracted from ${GFB_DIRECTORY}"
     exit 1
