@@ -7,7 +7,7 @@ POLY_DIR="${SCRIPT_DIR}/polygons"
 
 echo 'Searching for the latest OSM file...'
 GFB_DIRECTORY=https://download.geofabrik.de/${GFB_CONTINENT}/
-GFB_HOUR=$( TZ=CET date '+%H' )
+GFB_HOUR=$( TZ=CET date '+%k' )
 GFB_DATE=$( TZ=CET date '+%y%m%d' )
 if (( $GFB_HOUR < 21 )) ; then # Before 21:00, files are still from yesterday, see https://download.geofabrik.de/technical.html
     GFB_DATE=$(( $GFB_DATE - 1 ))
