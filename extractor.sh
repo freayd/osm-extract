@@ -13,7 +13,7 @@ if (( $GFB_HOUR < 21 )) ; then # Before 21:00, files are still from yesterday, s
     GFB_DATE=$(( $GFB_DATE - 1 ))
 fi
 if [[ ! -f "${DATA_DIR}/${GFB_REGION}-${GFB_DATE}.osm.pbf" ]] ; then
-    GFB_DATE=$( wget -q -O - "${GFB_DIRECTORY}" | sed -En 's/.*china-([0-9]{6})\.osm\.pbf.*/\1/p' | sort -r | head -1 )
+    GFB_DATE=$( wget -q -O - "${GFB_DIRECTORY}" | sed -En 's/.*'"${GFB_REGION}"'-([0-9]{6})\.osm\.pbf.*/\1/p' | sort -r | head -1 )
 fi
 if [[ ! "$GFB_DATE" =~ ^[0-9]{6}$ ]] ; then
     echo "Invalid date \"${GFB_DATE}\" extracted from ${GFB_DIRECTORY}"
