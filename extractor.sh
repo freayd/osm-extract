@@ -32,14 +32,16 @@ if ! md5sum --status -c "${GFB_MD5_FILE}" ; then
     exit 1
 fi
 
-cd "${POLY_DIR}"
-echo 'Downloading polygon file...'
-wget -qc --show-progress "https://raw.githubusercontent.com/osmandapp/OsmAnd-misc/master/osm-planet/polygons/${OSA_REGION}.poly"
-
-cd "${SCRIPT_DIR}"
-echo 'Filtering out regional data...'
 REGIONAL_PBF_FILE=${REGION}-${GFB_DATE}.osm.pbf
-[[ -f "${DATA_DIR}/${REGIONAL_PBF_FILE}" ]] || "${OSMOSIS}" --read-pbf file="${DATA_DIR}/${GFB_PBF_FILE}" --bounding-polygon file="${POLY_DIR}/${REGION}.poly" --write-pbf "${DATA_DIR}/${REGIONAL_PBF_FILE}"
+if [[ $GFB_PBF_FILE != $REGIONAL_PBF_FILE ]] ; then
+    cd "${POLY_DIR}"
+    echo 'Downloading polygon file...'
+    wget -qc --show-progress "https://raw.githubusercontent.com/osmandapp/OsmAnd-misc/master/osm-planet/polygons/${OSA_REGION}.poly"
+
+    cd "${SCRIPT_DIR}"
+    echo 'Filtering out regional data...'
+    [[ -f "${DATA_DIR}/${REGIONAL_PBF_FILE}" ]] || "${OSMOSIS}" --read-pbf file="${DATA_DIR}/${GFB_PBF_FILE}" --bounding-polygon file="${POLY_DIR}/${REGION}.poly" --write-pbf "${DATA_DIR}/${REGIONAL_PBF_FILE}"
+fi
 
 cd "${OSMAND_CREATOR_DIR}"
 echo 'Converting to OsmAnd format...'
