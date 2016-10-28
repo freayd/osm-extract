@@ -6,14 +6,16 @@ DATA_DIR="${SCRIPT_DIR}/data"
 POLY_DIR="${SCRIPT_DIR}/polygons"
 
 echo 'Searching for the latest OSM file...'
-GFB_DIRECTORY=https://download.geofabrik.de/${GFB_CONTINENT}/
+GFB_TOP_REGION=$( dirname ${GFB_REGION} )
+GFB_SUB_REGION=$( basename ${GFB_REGION} )
+GFB_DIRECTORY=https://download.geofabrik.de/${GFB_TOP_REGION}/
 GFB_HOUR=$( TZ=CET date '+%k' )
 GFB_DATE=$( TZ=CET date '+%y%m%d' )
 if (( $GFB_HOUR < 21 )) ; then # Before 21:00, files are still from yesterday, see https://download.geofabrik.de/technical.html
     GFB_DATE=$(( $GFB_DATE - 1 ))
 fi
-if [[ ! -f "${DATA_DIR}/${GFB_REGION}-${GFB_DATE}.osm.pbf" ]] ; then
-    GFB_DATE=$( wget -q -O - "${GFB_DIRECTORY}" | sed -En 's/.*'"${GFB_REGION}"'-([0-9]{6})\.osm\.pbf.*/\1/p' | sort -r | head -1 )
+if [[ ! -f "${DATA_DIR}/${GFB_SUB_REGION}-${GFB_DATE}.osm.pbf" ]] ; then
+    GFB_DATE=$( wget -q -O - "${GFB_DIRECTORY}" | sed -En 's/.*'"${GFB_SUB_REGION}"'-([0-9]{6})\.osm\.pbf.*/\1/p' | sort -r | head -1 )
 fi
 if [[ ! "$GFB_DATE" =~ ^[0-9]{6}$ ]] ; then
     echo "Invalid date \"${GFB_DATE}\" extracted from ${GFB_DIRECTORY}"
@@ -22,25 +24,26 @@ fi
 
 cd "${DATA_DIR}"
 echo 'Downloading OSM data...'
-GFB_PBF_FILE=${GFB_REGION}-${GFB_DATE}.osm.pbf
+GFB_PBF_FILE=${GFB_SUB_REGION}-${GFB_DATE}.osm.pbf
 GFB_MD5_FILE=${GFB_PBF_FILE}.md5
-wget -qc --show-progress "https://download.geofabrik.de/${GFB_CONTINENT}/${GFB_PBF_FILE}"
-wget -qc --show-progress "https://download.geofabrik.de/${GFB_CONTINENT}/${GFB_MD5_FILE}"
+wget -qc --show-progress "https://download.geofabrik.de/${GFB_TOP_REGION}/${GFB_PBF_FILE}"
+wget -qc --show-progress "https://download.geofabrik.de/${GFB_TOP_REGION}/${GFB_MD5_FILE}"
 echo 'Verifying downloaded data...'
 if ! md5sum --status -c "${GFB_MD5_FILE}" ; then
     echo "Invalid md5 sum: $( md5sum -c ${GFB_MD5_FILE} )"
     exit 1
 fi
 
+REGION=$( basename "${BASH_SOURCE[1]}" .sh )
 REGIONAL_PBF_FILE=${REGION}-${GFB_DATE}.osm.pbf
 if [[ $GFB_PBF_FILE != $REGIONAL_PBF_FILE ]] ; then
     cd "${POLY_DIR}"
     echo 'Downloading polygon file...'
-    wget -qc --show-progress "https://raw.githubusercontent.com/osmandapp/OsmAnd-misc/master/osm-planet/polygons/${OSA_REGION}.poly"
+    wget -qc --show-progress "https://raw.githubusercontent.com/osmandapp/OsmAnd-misc/master/osm-planet/polygons/${OSA_POLYGON}"
 
     cd "${SCRIPT_DIR}"
     echo 'Filtering out regional data...'
-    [[ -f "${DATA_DIR}/${REGIONAL_PBF_FILE}" ]] || "${OSMOSIS}" --read-pbf file="${DATA_DIR}/${GFB_PBF_FILE}" --bounding-polygon file="${POLY_DIR}/${REGION}.poly" --write-pbf "${DATA_DIR}/${REGIONAL_PBF_FILE}"
+    [[ -f "${DATA_DIR}/${REGIONAL_PBF_FILE}" ]] || "${OSMOSIS}" --read-pbf file="${DATA_DIR}/${GFB_PBF_FILE}" --bounding-polygon file="${POLY_DIR}/$( basename ${OSA_POLYGON} )" --write-pbf "${DATA_DIR}/${REGIONAL_PBF_FILE}"
 fi
 
 cd "${OSMAND_CREATOR_DIR}"
