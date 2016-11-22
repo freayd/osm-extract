@@ -1,0 +1,6 @@
+[submodule "osmosis"]
+	path = osmosis
+	url = https://github.com/openstreetmap/osmosis.git
+[submodule "osmand/misc"]
+	path = osmand/misc
+	url = https://github.com/osmandapp/OsmAnd-misc.git

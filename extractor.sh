@@ -3,7 +3,6 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "${SCRIPT_DIR}/config.sh"
 DATA_DIR="${SCRIPT_DIR}/data"
-POLY_DIR="${SCRIPT_DIR}/polygons"
 
 echo 'Searching for the latest OSM file...'
 GFB_TOP_REGION=$( dirname ${GFB_REGION} )
@@ -36,14 +35,16 @@ fi
 
 REGION=$( basename "${BASH_SOURCE[1]}" .sh )
 REGIONAL_PBF_FILE=${REGION}-${GFB_DATE}.osm.pbf
-if [[ $GFB_PBF_FILE != $REGIONAL_PBF_FILE ]] ; then
-    cd "${POLY_DIR}"
-    echo 'Downloading polygon file...'
-    wget -qc --show-progress "https://raw.githubusercontent.com/osmandapp/OsmAnd-misc/master/osm-planet/polygons/${OSA_POLYGON}"
-
-    cd "${SCRIPT_DIR}"
+OSMOSIS="${SCRIPT_DIR}/osmosis/package/bin/osmosis"
+OSMAND_POLY_DIR="${SCRIPT_DIR}/osmand/misc/osm-planet/polygons"
+if ! "${OSMOSIS}" -v &> /dev/null ; then
+    echo 'Compiling Osmosis...'
+    cd "${SCRIPT_DIR}/osmosis"
+    ./gradlew assemble || exit 1
+fi
+if [[ ! -f "${DATA_DIR}/${REGIONAL_PBF_FILE}" ]] ; then
     echo 'Filtering out regional data...'
-    [[ -f "${DATA_DIR}/${REGIONAL_PBF_FILE}" ]] || "${OSMOSIS}" --read-pbf file="${DATA_DIR}/${GFB_PBF_FILE}" --bounding-polygon file="${POLY_DIR}/$( basename ${OSA_POLYGON} )" --write-pbf "${DATA_DIR}/${REGIONAL_PBF_FILE}"
+    "${OSMOSIS}" --read-pbf file="${DATA_DIR}/${GFB_PBF_FILE}" --bounding-polygon file="${OSMAND_POLY_DIR}/${OSA_POLYGON}" --write-pbf "${DATA_DIR}/${REGIONAL_PBF_FILE}"
 fi
 
 cd "${OSMAND_CREATOR_DIR}"
