@@ -1,7 +1,6 @@
 #!/bin/bash
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-source "${SCRIPT_DIR}/config.sh"
 DATA_DIR="${SCRIPT_DIR}/data"
 
 echo 'Searching for the latest OSM file...'
@@ -35,6 +34,7 @@ fi
 
 REGION=$( basename "${BASH_SOURCE[1]}" .sh )
 REGIONAL_PBF_FILE=${REGION}-${GFB_DATE}.osm.pbf
+REGIONAL_OBF_FILE=${REGION}-${GFB_DATE}.obf
 OSMOSIS="${SCRIPT_DIR}/osmosis/package/bin/osmosis"
 OSMAND_POLY_DIR="${SCRIPT_DIR}/osmand/misc/osm-planet/polygons"
 if ! "${OSMOSIS}" -v &> /dev/null ; then
@@ -47,12 +47,20 @@ if [[ ! -f "${DATA_DIR}/${REGIONAL_PBF_FILE}" ]] ; then
     "${OSMOSIS}" --read-pbf file="${DATA_DIR}/${GFB_PBF_FILE}" --bounding-polygon file="${OSMAND_POLY_DIR}/${OSA_POLYGON}" --write-pbf "${DATA_DIR}/${REGIONAL_PBF_FILE}"
 fi
 
+OSMAND_CREATOR_DIR="${SCRIPT_DIR}/osmand/tools/OsmAndMapCreator"
+OSMAND_CREATOR_BATCH="${SCRIPT_DIR}/osmand/creator-batch.xml"
+OSMAND_CREATOR_PBF_DIR="${SCRIPT_DIR}/osmand/.creator/pbf"
+OSMAND_CREATOR_OBF_DIR="${SCRIPT_DIR}/osmand/.creator/obf"
+rm -f "${OSMAND_CREATOR_PBF_DIR}/*.pbf"
+rm -f "${OSMAND_CREATOR_OBF_DIR}/*.obf"
 cd "${OSMAND_CREATOR_DIR}"
-echo 'Converting to OsmAnd format...'
-OSMAND_CREATOR_INPUT_DIR=$( sed -En 's/.*directory_for_osm_files="([^"]*)".*/\1/p' batch.xml )
-if [[ ! -d "${OSMAND_CREATOR_INPUT_DIR}" ]] ; then
-    echo "The path \"${OSMAND_CREATOR_INPUT_DIR}\" (directory_for_osm_files parameter in batch.xml) isn't a directory"
-    exit 1
+if [[ ! -f "${OSMAND_CREATOR_DIR}/OsmAndMapCreator.jar" ]] ; then
+    echo 'Compiling OsmAndMapCreator...'
+    ant jar || exit 1
 fi
-cp "${DATA_DIR}/${REGIONAL_PBF_FILE}" "${OSMAND_CREATOR_INPUT_DIR}"
-java -Djava.util.logging.config.file=logging.properties -Xms256M -Xmx2560M -cp "./OsmAndMapCreator.jar:./lib/OsmAnd-core.jar:./lib/*.jar" net.osmand.data.index.IndexBatchCreator ./batch.xml
+if [[ ! -f "${DATA_DIR}/${REGIONAL_OBF_FILE}" ]] ; then
+    echo 'Converting to OsmAnd format...'
+    ln -s "${DATA_DIR}/${REGIONAL_PBF_FILE}" "${OSMAND_CREATOR_PBF_DIR}"
+    java -Djava.util.logging.config.file=logging.properties -Xms256M -Xmx2560M -cp "./OsmAndMapCreator.jar:./lib/OsmAnd-core.jar:./lib/*.jar" net.osmand.data.index.IndexBatchCreator "${OSMAND_CREATOR_BATCH}"
+    mv "${OSMAND_CREATOR_OBF_DIR}/"*.obf "${DATA_DIR}/${REGIONAL_OBF_FILE}"
+fi

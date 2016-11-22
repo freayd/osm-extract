@@ -4,3 +4,12 @@
 [submodule "osmand/misc"]
 	path = osmand/misc
 	url = https://github.com/osmandapp/OsmAnd-misc.git
+[submodule "osmand/android"]
+	path = osmand/android
+	url = https://github.com/osmandapp/OsmAnd.git
+[submodule "osmand/resources"]
+	path = osmand/resources
+	url = https://github.com/osmandapp/OsmAnd-resources.git
+[submodule "osmand/tools"]
+	path = osmand/tools
+	url = https://github.com/osmandapp/OsmAnd-tools.git
