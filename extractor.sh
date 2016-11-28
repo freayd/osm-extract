@@ -2,6 +2,7 @@
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DATA_DIR="${SCRIPT_DIR}/data"
+mkdir -p "${DATA_DIR}"
 
 echo 'Searching for the latest OSM file...'
 GFB_TOP_REGION=$( dirname ${GFB_REGION} )
@@ -49,10 +50,16 @@ fi
 
 OSMAND_CREATOR_DIR="${SCRIPT_DIR}/osmand/tools/OsmAndMapCreator"
 OSMAND_CREATOR_BATCH="${SCRIPT_DIR}/osmand/creator-batch.xml"
+OSMAND_CREATOR_TMP_DIR="${SCRIPT_DIR}/osmand/.creator"
 OSMAND_CREATOR_PBF_DIR="${SCRIPT_DIR}/osmand/.creator/pbf"
 OSMAND_CREATOR_OBF_DIR="${SCRIPT_DIR}/osmand/.creator/obf"
-rm -f "${OSMAND_CREATOR_PBF_DIR}/*.pbf"
-rm -f "${OSMAND_CREATOR_OBF_DIR}/*.obf"
+mkdir -p "${OSMAND_CREATOR_TMP_DIR}"
+mkdir -p "${OSMAND_CREATOR_PBF_DIR}"
+mkdir -p "${OSMAND_CREATOR_OBF_DIR}"
+rm -f "${OSMAND_CREATOR_TMP_DIR}/"*.obf.*
+rm -f "${OSMAND_CREATOR_TMP_DIR}/"*.odb
+rm -f "${OSMAND_CREATOR_PBF_DIR}/"*.pbf
+rm -f "${OSMAND_CREATOR_OBF_DIR}/"*.obf
 cd "${OSMAND_CREATOR_DIR}"
 if [[ ! -f "${OSMAND_CREATOR_DIR}/OsmAndMapCreator.jar" ]] ; then
     echo 'Compiling OsmAndMapCreator...'
