@@ -40,11 +40,13 @@ OSMOSIS="${SCRIPT_DIR}/osmosis/package/bin/osmosis"
 OSMAND_POLY_DIR="${SCRIPT_DIR}/osmand/misc/osm-planet/polygons"
 if ! "${OSMOSIS}" -v &> /dev/null ; then
     echo 'Compiling Osmosis...'
+    git submodule update --init "${SCRIPT_DIR}/osmosis"
     cd "${SCRIPT_DIR}/osmosis"
     ./gradlew assemble || exit 1
 fi
 if [[ ! -f "${DATA_DIR}/${REGIONAL_PBF_FILE}" ]] ; then
     echo 'Filtering out regional data...'
+    git submodule update --init "${SCRIPT_DIR}/osmand/misc"
     "${OSMOSIS}" --read-pbf file="${DATA_DIR}/${GFB_PBF_FILE}" --bounding-polygon file="${OSMAND_POLY_DIR}/${OSA_POLYGON}" --write-pbf "${DATA_DIR}/${REGIONAL_PBF_FILE}"
 fi
 
@@ -63,6 +65,9 @@ rm -f "${OSMAND_CREATOR_OBF_DIR}/"*.obf
 cd "${OSMAND_CREATOR_DIR}"
 if [[ ! -f "${OSMAND_CREATOR_DIR}/OsmAndMapCreator.jar" ]] ; then
     echo 'Compiling OsmAndMapCreator...'
+    git submodule update --init "${SCRIPT_DIR}/osmand/android"
+    git submodule update --init "${SCRIPT_DIR}/osmand/resources"
+    git submodule update --init "${SCRIPT_DIR}/osmand/tools"
     ant jar || exit 1
 fi
 if [[ ! -f "${DATA_DIR}/${REGIONAL_OBF_FILE}" ]] ; then
